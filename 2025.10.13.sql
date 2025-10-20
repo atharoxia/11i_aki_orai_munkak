@@ -42,5 +42,20 @@ SELECT COUNT(*) AS kicsik
 FROM varos
 WHERE varos.terulet < 10;
 
+--Írjuk azon városok nevét és lélekszámát, amelyek neve Kiskunnal kezdődik
+SELECT varos.vnev, varos.nepesseg
+FROM varos
+WHERE varos.vnev LIKE "Kiskun%";
+
+--Írjuk azon városok nevét és területét, amelyek neve pontosan 4 betű:
+SELECT varos.vnev, varos.terulet
+FROM varos
+WHERE varos.vnev LIKE "____";
+
+--A három legkisebb népességű város neve és járása:
+SELECT varos.vnev, varos.jaras
+FROM varos
+ORDER BY varos.nepesseg ASC
+LIMIT 3;
 
 
