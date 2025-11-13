@@ -58,4 +58,28 @@ FROM varos
 ORDER BY varos.nepesseg ASC
 LIMIT 3;
 
+--Írassuk ki a Bács-Kiskun megyei városok nevét és népességét:
+SELECT varos.vnev, varos.nepesseg
+FROM varos INNER JOIN megye ON varos.megyeid = megye.id
+WHERE megye.mnev = "Bács-Kiskun";
+
+--Megyei jogú városok népesség szerint csökkenő sorban:
+SELECT varos.vnev, varos.nepesseg
+FROM varos INNER JOIN varostipus ON varos.vtipid = varostipus.id
+WHERE varostipus.vtip LIKE "%megyei jogú város%"
+ORDER BY varos.nepesseg DESC;
+
+--Hány város van Fejér megyében:
+SELECT COUNT(*) AS db
+FROM varos INNER JOIN megye ON varos.megyeid = megye.id
+WHERE megye.mnev = "Fejér";
+
+--Melyik megyében összesen mennyi városlakó van:
+SELECT megye.mnev, SUM(varos.nepesseg) AS lakosok
+FROM varos INNER JOIN megye ON varos.megyeid = megye.id
+GROUP BY megye.mnev;
+
+
+
+
 
