@@ -79,7 +79,40 @@ SELECT megye.mnev, SUM(varos.nepesseg) AS lakosok
 FROM varos INNER JOIN megye ON varos.megyeid = megye.id
 GROUP BY megye.mnev;
 
+--Mely települések tartoznak ugyanahhoz a járáshoz, mint Adony:
+SELECT varos.vnev
+FROM varos
+WHERE varos.jaras = (
+    SELECT varos.jaras
+	FROM varos
+	WHERE varos.vnev = "Adony");
+
+--Bácsalmásnél kisebb népességű városok:
+SELECT varos.vnev, varos.nepesseg
+FROM varos
+WHERE varos.nepesseg < (
+    SELECT varos.nepesseg
+    FROM varos
+	WHERE varos.vnev = "Bácsalmás")
+
+--Melyik városok vannak ugyanabban a megyében, mint Mohács? Mohács ne jelenjen meg!
+SELECT varos.vnev
+FROM varos
+WHERE varos.megyeid = (
+	SELECT varos.megyeid
+	FROM varos
+	WHERE varos.vnev = "Mohács")
+AND varos.vnev <> "Mohács";
 
 
+--Melyik megyékben van több város és mennyi, mint Csongrád megyében:
+SELECT megye.mnev, COUNT(*)
+FROM megye INNER JOIN varos ON megye.id = varos.megyeid
+GROUP BY megye.mnev
+HAVING COUNT(*) > (
+    SELECT COUNT(*)
+	FROM varos INNER JOIN megye ON megye.id = varos.megyeid
+	WHERE megye.mnev = "Csongrád");
 
 
+	
