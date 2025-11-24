@@ -114,5 +114,3 @@ HAVING COUNT(*) > (
 	FROM varos INNER JOIN megye ON megye.id = varos.megyeid
 	WHERE megye.mnev = "Csongrád");
 
-
-	
