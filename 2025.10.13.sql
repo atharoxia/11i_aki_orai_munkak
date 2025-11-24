@@ -114,3 +114,29 @@ HAVING COUNT(*) > (
 	FROM varos INNER JOIN megye ON megye.id = varos.megyeid
 	WHERE megye.mnev = "Csongrád");
 
+--Őstermelős feladat
+SELECT DISTINCT partnerek.telepules
+FROM partnerek
+ORDER BY partnerek.telepules;
+
+SELECT COUNT(*) AS alkalmak
+FROM kiszallitasok INNER JOIN partnerek ON kiszallitasok.partnerid = partnerek.id
+WHERE partnerek.telepules = "Vác";
+
+SELECT kiszallitasok.karton AS legtobb
+FROM kiszallitasok
+WHERE kiszallitasok.datum LIKE "2016-05%"
+ORDER BY kiszallitasok.karton DESC
+LIMIT 1;
+
+SELECT partnerek.telepules, COUNT(*)
+FROM partnerek
+GROUP BY partnerek.telepules
+HAVING COUNT(*) > 1;
+
+SELECT gyumolcslevek.gynev AS ital, SUM(kiszallitasok.karton * 6) AS dobozok
+FROM gyumolcslevek INNER JOIN kiszallitasok ON gyumolcslevek.id = kiszallitasok.gyumleid
+GROUP BY gyumolcslevek.gynev
+ORDER BY dobozok DESC
+
+
