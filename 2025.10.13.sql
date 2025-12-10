@@ -140,3 +140,65 @@ GROUP BY gyumolcslevek.gynev
 ORDER BY dobozok DESC
 
 
+--Kultúrtörténet
+--Lekérdezés segítségével írassa ki azon csapatok nevét, amelyek neve a # karakterrel kezdődik!
+SELECT csapat.nev
+FROM csapat
+WHERE csapat.nev LIKE "#%";
+
+
+--A feladatsor táblát használva, lekérdezés segítségével jelenítse meg a feladatsor névadójának nevét, ha abban pontosan egy szóköz van!
+SELECT feladatsor.nevado
+FROM feladatsor
+WHERE feladatsor.nevado LIKE "% %" AND feladatsor.nevado NOT LIKE "% % %";
+
+
+--Készítsen lekérdezést, amely megadja, hogy ki a névadója a 2018. szilveszterkor aktív feladatsornak!
+SELECT feladatsor.nevado
+FROM feladatsor
+WHERE feladatsor.kituzes < "2018-12-31" AND feladatsor.hatarido > "2018-12-31";
+
+
+--Készítsen lekérdezést, amely meghatározza a végeredményt! A csapatok neve és az általuk elért összpontszám jelenjen meg, utóbbi szerint csökkenő sorrendben!
+SELECT csapat.nev, SUM(megoldas.pontszam) AS osszpont
+FROM megoldas INNER JOIN csapat ON megoldas.csapatid = csapat.id
+GROUP BY csapat.nev
+ORDER BY osszpont DESC;
+
+--Eredetileg úgy tervezték, hogy minden feladatsor 150 pontos lesz. Néhány esetben a kitűzés után kellett módosítani a feladatsoron, így ez nem valósult meg. Adja meg lekérdezéssel azokat a feladatsorokat, amelyek nem 150 pontosak! A feladatsor névadóját, a művészeti ágat és a pontszámot jelenítse meg!
+SELECT feladatsor.nevado, feladatsor.ag, SUM(feladat.pontszam) AS osszpont
+FROM feladatsor INNER JOIN feladat ON feladatsor.id = feladat.feladatsorid
+GROUP BY feladatsor.id
+HAVING osszpont <> 150;
+
+--Lekérdezés segítségével listázza ki azon csapatok nevét, amelyeknek volt maximális pontszámot érő feladata! Minden csapat neve egyszer jelenjen meg!
+SELECT DISTINCT csapat.nev
+FROM feladat INNER JOIN megoldas ON feladat.id = megoldas.feladatid INNER JOIN csapat ON megoldas.csapatid = csapat.id
+WHERE feladat.pontszam = megoldas.pontszam;
+
+--Bár a versenyzők lelkesek voltak és törekedtek minden feladatot megoldani, ennek ellenére előfordult, hogy nem minden feladatra adtak be megoldást. Készítsen lekérdezést, amelymegadja, hogy a „#win” csapat mely feladatsorokból hány feladatot nem adott be! Jelenítse meg a feladatsor névadóját és a be nem adott feladatok számát!
+SELECT feladatsor.nevado, COUNT(*)
+FROM feladatsor INNER JOIN feladat ON feladatsor.id = feladat.feladatsorid
+WHERE feladat.id NOT IN(
+	SELECT megoldas.feladatid
+	FROM megoldas INNER JOIN csapat ON megoldas.csapatid = csapat.id
+	WHERE csapat.nev = "#win")
+GROUP BY feladatsor.id;
+
+
+--Készítsen lekérdezést, amely megadja, hogy az „irodalom” művészeti ághoz tartozó feladatsorok közül melyeket kellett ugyanabban a hónapban beadni, mint amikor kitűzték? Adja meg a feladatsorok névadóját!
+SELECT feladatsor.nevado
+FROM feladatsor
+WHERE MONTH(feladatsor.kituzes) = MONTH(feladatsor.hatarido) AND feladatsor.ag = "irodalom";
+
+--Lekérdezés segítségével adja meg, melyik feladatsor megoldására volt a legkevesebb idő! A feladatsor névadóját jelenítse meg! Ha több ilyen feladatsor van, elegendő az egyiket megadnia.
+SELECT feladatsor.nevado, DATEDIFF(feladatsor.hatarido, feladatsor.kituzes) AS napok
+FROM feladatsor
+ORDER BY napok ASC
+LIMIT 1;
+
+
+--Készítsen lekérdezést, amely megadja, hogy mely feladatoksorokat tűzték ki az előző beadási határidejét követő napon! A feladatsor névadóját és a kitűzés idejét jelenítse meg! A feladat megoldása során kihasználhatja, hogy egyszerre csak egy feladatsor volt aktív.
+SELECT kovetkezo.nevado, kovetkezo.kituzes
+FROM feladatsor AS elozo, feladatsor AS kovetkezo
+WHERE DATEDIFF(kovetkezo.kituzes, elozo.hatarido) = 1;
