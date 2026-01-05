@@ -202,3 +202,66 @@ LIMIT 1;
 SELECT kovetkezo.nevado, kovetkezo.kituzes
 FROM feladatsor AS elozo, feladatsor AS kovetkezo
 WHERE DATEDIFF(kovetkezo.kituzes, elozo.hatarido) = 1;
+
+--Heltai Olga által írt magyar szövegek
+SELECT film.cim, film.eredeti FROM film WHERE film.magyarszoveg = "Heltai Olga";
+
+--2000 utáni filmek rendező-szinkronrendező párosai
+SELECT DISTINCT film.rendezo, film.szinkronrendezo
+FROM film
+WHERE film.ev > 2000;
+
+--Christopher Nolan Mafilm Audio Kft.-tél készült magyar szövegei
+SELECT film.magyarszoveg, film.cim
+FROM film
+WHERE film.rendezo = "Christopher Nolan" AND film.studio = "Mafilm Audio Kft."
+ORDER BY film.magyarszoveg ASC;
+
+--Anger Zsolt szinkronzerepei
+SELECT film.cim, film.eredeti, szinkron.szinesz, szinkron.szerep
+FROM film INNER JOIN szinkron ON film.filmaz = szinkron.filmaz
+WHERE szinkron.hang = "Anger Zsolt";
+
+--MElyik filmben mennyi szinkronszerep van
+SELECT film.cim, film.eredeti, COUNT(szinkron.szinkid)
+FROM film INNER JOIN szinkron ON film.filmaz = szinkron.filmaz
+GROUP BY film.cim, film.eredeti;
+
+--rabbal kezdődő szerepek
+SELECT szinkron.szerep, szinkron.szinesz, szinkron.hang
+FROM szinkron
+WHERE szinkron.szerep LIKE "rab%" OR szinkron.szerep LIKE "% rab%";
+
+--Színés és rendező is
+SELECT DISTINCT szinkron.szinesz AS "Színész-rendező"
+FROM szinkron
+WHERE szinkron.szinesz IN (
+    SELECT film.rendezo
+	FROM film);
+
+--Pap Katival egy szonkronban szereplő hangok
+SELECT film.cim, szinkron.hang
+FROM film INNER JOIN szinkron ON film.filmaz = szinkron.filmaz
+WHERE film.filmaz IN (
+	SELECT film.filmaz
+	FROM film INNER JOIN szinkron ON film.filmaz = szinkron.filmaz
+	WHERE szinkron.hang = "Pap Kati") AND szinkron.hang <> "Pap Kati"
+ORDER BY film.cim ASC, szinkron.hang ASC;
+
+--Legalább 3-szor szinkronizálta
+SELECT szinkron.szinesz, szinkron.hang, COUNT(*)
+FROM szinkron
+GROUP BY szinkron.szinesz, szinkron.hang
+HAVING COUNT(*) >= 3
+ORDER BY COUNT(*) DESC;
+
+--Ugyanabban az évben a  Mafilmnél és egy másik stúdiónál is szinkronizált.
+SELECT DISTINCT f1.ev, sz1.hang
+FROM film AS f1, szinkron AS sz1, film AS f2, szinkron AS sz2
+WHERE f1.ev = f2.ev
+AND sz1.hang = sz2.hang
+AND f1.studio <> "Mafilm Audio Kft."
+AND f2.studio = "Mafilm Audio Kft."
+AND f1.filmaz = sz1.filmaz
+AND f2.filmaz = sz2.filmaz
+ORDER BY sz1.hang;
