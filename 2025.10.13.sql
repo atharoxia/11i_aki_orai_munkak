@@ -265,3 +265,62 @@ AND f2.studio = "Mafilm Audio Kft."
 AND f1.filmaz = sz1.filmaz
 AND f2.filmaz = sz2.filmaz
 ORDER BY sz1.hang;
+
+
+--Készítsen lekérdezést, amely megadja, hogy az adatbázisban milyen közterületeken kínálnak lakást! Minden közterület neve csak egyszer, ábécérendben jelenjen meg!
+
+SELECT DISTINCT ingatlan.kozterulet
+FROM ingatlan
+ORDER BY ingatlan.kozterulet ASC;
+
+
+--Lekérdezés segítségével adja meg, hogy az „Agyagos utca” ingatlanjait milyen áron hirdették meg! Jelenítse meg a házszámot és a meghirdetéskor megadott árat!
+
+SELECT ingatlan.hazszam, hirdetes.ar
+FROM ingatlan INNER JOIN hirdetes ON ingatlan.id = hirdetes.ingatlanid
+WHERE ingatlan.kozterulet = "Agyagos utca" AND hirdetes.allapot = "meghirdetve";
+
+--Készítsen lekérdezést, amely megadja, hogy a közvetítő cég az itt szereplő ingatlanok eladásából mennyi bevételre tett szert 2021-ben, ha az eladási ár 1,5 százalékát mint közvetítői díjat megkapta!
+
+SELECT SUM(hirdetes.ar) * 0.015
+FROM hirdetes
+WHERE hirdetes.allapot = "eladva";
+
+
+--Lekérdezés segítségével adja meg, hogy a legdrágábban meghirdetett ingatlan ára hányszorosa volt a legolcsóbban meghirdetett ingatlan árának! Az árváltozásokat és az eladásokat ne vegye figyelembe! Adja meg az arányt kerekítés nélkül!
+
+SELECT ROUND(MAX(hirdetes.ar) / MIN(hirdetes.ar), 0)
+FROM hirdetes
+WHERE hirdetes.allapot = "meghirdetve";
+
+--Lekérdezés segítségével határozza meg, hogy melyik az az ingatlan, amelyet a legrégebben hirdettek meg, de még nem adtak el, és amelynek a hirdetését sem módosították! Jelenítse meg a közterület nevét és a házszámot, valamint a hirdetés feladásának dátumát! Ha több ilyen ingatlan van, akkor elég az egyik adatait megjelenítenie.
+
+SELECT ingatlan.kozterulet, ingatlan.hazszam, hirdetes.datum
+FROM ingatlan INNER JOIN hirdetes ON ingatlan.id = hirdetes.ingatlanid
+WHERE hirdetes.allapot = "meghirdetve" AND ingatlan.id NOT IN(
+    SELECT hirdetes.ingatlanid
+	FROM hirdetes
+	WHERE hirdetes.allapot = "módosítva" OR hirdetes.allapot = "eladva")
+ORDER BY hirdetes.datum ASC
+LIMIT 1;
+
+
+--Lekérdezés segítségével adja meg azokat az ingatlanokat, amelyeket ugyanazon az áron adtak el, mint amilyenen meghirdették őket! Vegye figyelembe, hogy az ingatlan ára az eladáskor is változhat. Az ingatlan címét, azaz a közterület nevét és a házszámot, valamint az árát jelenítse meg!
+
+SELECT ingatlan.kozterulet, ingatlan.hazszam, h1.ar
+FROM hirdetes AS h1, hirdetes AS h2, ingatlan
+WHERE h1.allapot = "meghirdetve"
+AND h2.allapot = "eladva"
+AND h1.ingatlanid = h2.ingatlanid
+AND h1.ar = h2.ar
+AND h1.ingatlanid = ingatlan.id;
+
+
+--Az ingatlanosok az alapterület meghatározásánál a terasz területét csak 50%-ban számítják bele az alapterületbe. Készítsen lekérdezést, amelyik megadja a 180 négyzetméternél nagyobb alapterületű ingatlanok címét és területét!
+
+SELECT ingatlan.kozterulet, ingatlan.hazszam,
+SUM(IF(helyiseg.funkcio = "terasz", helyiseg.szel * helyiseg.hossz / 2, helyiseg.szel * helyiseg.hossz)) AS terulet
+FROM ingatlan INNER JOIN helyiseg ON ingatlan.id = helyiseg.ingatlanid
+GROUP BY ingatlan.id
+HAVING terulet > 180 
+ORDER BY `terulet` DESC
